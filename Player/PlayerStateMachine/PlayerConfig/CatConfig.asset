@@ -1,0 +1,55 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3370cc32c9093cc47988b4b08d206c18, type: 3}
+  m_Name: CatConfig
+  m_EditorClassIdentifier: 
+  moveSpeed: 4.2
+  wallExitKick: {x: 0.3, y: 0.25}
+  deathKick: {x: 0, y: 5}
+  collisionRadius: 0.2
+  climbLayers:
+    serializedVersion: 2
+    m_Bits: 65600
+  jumpSpeed: 9
+  gravityScale: 2
+  inAirTimer: 0.45
+  jumpingTimer: 0.4
+  coyoteTimer: 0.2
+  minCancelTimer: 0.35
+  cancelTimer: 0.3
+  gravityModifier: 1.2
+  inAirSpeed: 5
+  wallJumpBuffer: 0.4
+  wallJumpGrav: 2.5
+  climbExitTime: 0.2
+  wallCorrectionAmount: 0.2
+  wallSlideDist: 0.5
+  launchForce: 25
+  rightOffset: {x: 0.4, y: 0}
+  leftOffset: {x: -0.4, y: 0}
+  wallSlidingSpeed: 2
+  wallCheckDistance: 0.6
+  dashTime: 0.3
+  dashCooldown: 2
+  dashSpeed: 8
+  waterDashSpeed: 6
+  waterDashTime: 0.32
+  sinkSpeed: -1
+  waterVelocity: -1
+  waterJump: 1
+  waterGravity: 0
+  swimSpeed: 3.5
+  meowList:
+  - {fileID: 8300000, guid: 6b15801bde20fc04f8d0e152546d7993, type: 3}
+  - {fileID: 8300000, guid: 97353c227db72ac49b8ff90d707db645, type: 3}
+  - {fileID: 8300000, guid: bcd951def3061af4682a92f6e838b229, type: 3}
+  footstepSound: {fileID: 8300000, guid: c38c242038a143d489f26af5cc1d9fa5, type: 3}
