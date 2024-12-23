@@ -163,4 +163,9 @@ public class PlayerInfo
     {
         movementLock = pState;
     }
+
+    public void SetMoveSpeed(float pVal)
+    {
+        moveSpeed = pVal;
+    }
 }

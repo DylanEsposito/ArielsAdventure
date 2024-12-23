@@ -94,4 +94,9 @@ public class WallJumpState : BaseState
         }
         
     }
+
+    public override PlayerState GetStateType()
+    {
+        return PlayerState.WallJumping;
+    }
 }

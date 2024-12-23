@@ -34,8 +34,8 @@ public class IdleState : BaseState
         }
     }
 
-    public void IdleAnimations()
+    public override PlayerState GetStateType()
     {
-
+        return PlayerState.Idle;
     }
 }

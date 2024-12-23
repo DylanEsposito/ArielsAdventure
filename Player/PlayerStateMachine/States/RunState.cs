@@ -55,4 +55,9 @@ public class RunState : BaseState
             pAnimator.SetBool("IsRunning", false);
         }
     }
+
+    public override PlayerState GetStateType()
+    {
+        return PlayerState.Running;
+    }
 }

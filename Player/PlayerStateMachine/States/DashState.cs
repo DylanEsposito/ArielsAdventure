@@ -50,6 +50,11 @@ public class DashState : BaseState
         pAnimator.SetBool("IsDashing", false);
     }
 
+    public override PlayerState GetStateType()
+    {
+        return PlayerState.Dashing;
+    }
+
     public override void updatePhysics(GameObject pGameObject, Rigidbody2D pRigidbody, PlayerInfo pInfo)
     {
         pRigidbody.gravityScale = 0f;

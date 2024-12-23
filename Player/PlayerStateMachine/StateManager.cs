@@ -4,18 +4,10 @@ using UnityEngine;
 
 public class StateManager : MonoBehaviour
 {
-    protected SpriteRenderer spriteRender;
-    protected Animator theAnimator;
-    protected Rigidbody2D theRigidbody;
-
     protected float gravityScaleAtStart;
 
     //Expected states in order to run
     protected BaseState currentState;
-    protected IdleState idleState;
-    protected RunState runState;
-    protected DeathState deathState;
-    protected FallState fallState;
 
     protected bool isAlive = true;
     protected bool isGrounded = false;

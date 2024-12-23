@@ -7,7 +7,6 @@ using UnityEngine.InputSystem;
 
 public class PlayerStateManager : StateManager
 {
-
     //Stores player's state
     PlayerInfo playerInfo;
 
@@ -15,15 +14,6 @@ public class PlayerStateManager : StateManager
     [SerializeField] PlayerConfig playerConfig;
     [SerializeField] AudioSource playerAudio;
 
-    //State management
-    JumpState playerJumpState;
-    WallJumpState playerWallJumpState;
-    ClimbState playerClimbState;
-    DashState playerDashState;
-    WallSlidingState playerWallSlideState;
-    SwimmingState playerSwimState;
-    WaterDashState playerWaterDashState;
-   
     [SerializeField] PlayerInput playerInput;
     InputAction moveVector;
 
@@ -74,12 +64,15 @@ public class PlayerStateManager : StateManager
     private Color originalColor;
     private Color adjustedColor;
 
+    private SpriteRenderer spriteRenderer;
+    private Animator theAnimator;
+    private Rigidbody2D theRigidbody;
+
     private void Awake()
     {
         LoadInConfig();
-        SetUpStates();
         playerInfo = new PlayerInfo(wallCheck, playerConfig.GetMoveSpeed());
-        spriteRender = GetComponent<SpriteRenderer>();
+        spriteRenderer = GetComponent<SpriteRenderer>();
         theAnimator = GetComponent<Animator>();
         theRigidbody = GetComponent<Rigidbody2D>();
         frontFootCollider = frontFoot.GetComponent<Collider2D>();
@@ -95,22 +88,6 @@ public class PlayerStateManager : StateManager
         jumpingBuffer = playerConfig.GetJumpTimer();
     }
 
-    void SetUpStates()
-    {
-        //Will be a costly for overhead but idc, don't care to do either lazy initialization/or check with these 
-        idleState = new IdleState();
-        runState = new RunState();
-        playerJumpState = new JumpState();
-        playerWallJumpState = new WallJumpState();
-        playerClimbState = new ClimbState();
-        playerDashState = new DashState();
-        playerWallSlideState = new WallSlidingState();
-        deathState = new DeathState();
-        fallState = new FallState();
-        playerSwimState = new SwimmingState();
-        playerWaterDashState = new WaterDashState();
-    }
-
     void Start()
     {
         GameSessionManager.instance.UpdateLastSave();
@@ -121,8 +98,8 @@ public class PlayerStateManager : StateManager
         PlayerEvents.instance.onEndClimb += LeaveClimb;
         PlayerEvents.instance.onClimbTimeEnd += FallOutOfClimb;
         PlayerEvents.instance.onResetJump += ZeroOutJumpingVars;
-        originalColor = spriteRender.color;
-        currentState = idleState;
+        originalColor = spriteRenderer.color;
+        currentState = new IdleState();
         currentState.enterState(this.gameObject, this.theRigidbody, this.theAnimator, this.playerConfig, this.playerInfo);
     }
 
@@ -135,32 +112,31 @@ public class PlayerStateManager : StateManager
 
     void Update()
     {
-        Debug.Log("This is the current state" + currentState);
         if (!isAlive)
         {
-            if (currentState.GetType() != deathState.GetType())
+            if (currentState.GetStateType() != PlayerState.NotAlive)
             {
-                SwitchState(deathState);
+                SwitchState(new DeathState());
             }
             return;
         }
 
         if (CheckGround())
         {
-            if (currentState.GetType() == playerJumpState.GetType() && inAirBuffer > 0.05)
+            if (currentState.GetStateType() == PlayerState.Jumping && inAirBuffer > 0.05)
             {
                 inAirBuffer -= Time.deltaTime;
                 return;
             }
-            else if (currentState.GetType() == playerClimbState.GetType())
+            else if (currentState.GetStateType() == PlayerState.Climbing)
             {
                 continousClimbCheck = false;
             }
             else
             {
-                if (currentState.GetType() == playerJumpState.GetType()
-                    || currentState.GetType() == playerWallJumpState.GetType()
-                    || currentState.GetType() == fallState.GetType())
+                if (currentState.GetStateType() == PlayerState.Jumping
+                    || currentState.GetStateType() == PlayerState.WallJumping
+                    || currentState.GetStateType() == PlayerState.Falling)
                 {
                     SwitchCheckIfMoving();
                     CreateDust();
@@ -206,7 +182,8 @@ public class PlayerStateManager : StateManager
         }
     }
 
-    private void FixedUpdate(){
+    private void FixedUpdate()
+    {
         currentState.updatePhysics(this.gameObject, theRigidbody, playerInfo);
 
         if (!isGrounded && !isDashing && !playerInfo.climbLeft && !playerInfo.climbRight)
@@ -233,16 +210,16 @@ public class PlayerStateManager : StateManager
         {
             if (playerInfo.moveInput.x > 0.05 || playerInfo.moveInput.x < -0.05)
             {
-                SwitchState(runState);
+                SwitchState(new RunState());
             }
             else
             {
-                SwitchState(idleState);
+                SwitchState(new IdleState());
             }
         }
         else
         {
-            SwitchState(fallState);
+            SwitchState(new FallState());
         }
     }
 
@@ -253,7 +230,7 @@ public class PlayerStateManager : StateManager
             case WaterDashState:
                 break;
             default:
-                SwitchState(playerSwimState);
+                SwitchState(new SwimmingState());
                 break;
         }
     }
@@ -343,9 +320,9 @@ public class PlayerStateManager : StateManager
                 theRigidbody.AddForce(new Vector2(theRigidbody.velocity.x * 25f, theRigidbody.velocity.y), ForceMode2D.Force);
             }
             CreateDust();
-            SwitchState(playerJumpState);
+            SwitchState(new JumpState());
         }
-        else if (context.canceled && !playerInfo.isContextCanceled() && currentState.GetType() == playerJumpState.GetType() && jumpingBuffer >= 0)
+        else if (context.canceled && !playerInfo.isContextCanceled() && currentState.GetStateType() == PlayerState.Jumping && jumpingBuffer >= 0)
         {
             playerInfo.SetContextCancel(true);
             ZeroOutJumpingVars();
@@ -368,7 +345,7 @@ public class PlayerStateManager : StateManager
             playerInfo.climbLeft = false;
             playerInfo.climbRight = false;
             wallCheckTimer = wallCheckCooldown;
-            SwitchState(playerWallJumpState);
+            SwitchState(new WallJumpState());
         }
     }
 
@@ -380,7 +357,7 @@ public class PlayerStateManager : StateManager
 
     private void JumpingTimer()
     {
-        if (currentState.GetType() == playerJumpState.GetType())
+        if (currentState.GetStateType() == PlayerState.Jumping)
         {
             inAirBuffer -= Time.deltaTime;
             jumpingBuffer -= Time.deltaTime;
@@ -396,16 +373,16 @@ public class PlayerStateManager : StateManager
     //CLIMB AREA
     private void ClimbingTimer()
     {
-        if (currentState.GetType() == playerClimbState.GetType())
+        if (currentState.GetStateType() == PlayerState.Climbing)
         {
             if (currentTimeClimbTime > 0)
             {
                 currentTimeClimbTime -= Time.deltaTime;
-                
+
                 //Adjust color of sprite based around current time and mulitply it by 0.01 to increment slowly
                 adjustedColor.b = (15 * currentTimeClimbTime) * 0.01f;
                 adjustedColor.g = (15 * currentTimeClimbTime) * 0.01f;
-                spriteRender.color = adjustedColor;
+                spriteRenderer.color = adjustedColor;
                 playerInfo.SetClimbTime(currentTimeClimbTime);
             }
         }
@@ -415,7 +392,7 @@ public class PlayerStateManager : StateManager
     {
         currentTimeClimbTime = climbTime;
         playerInfo.SetClimbTime(currentTimeClimbTime);
-        spriteRender.color = originalColor;
+        spriteRenderer.color = originalColor;
         adjustedColor = originalColor;
     }
 
@@ -424,7 +401,7 @@ public class PlayerStateManager : StateManager
         if (!isAlive || playerInfo.GetClimbTime() <= 0 || playerInfo.MovementLocked()) { continousClimbCheck = false; return; }
 
         //DEE test
-        if (context.started && currentState.GetType() != playerClimbState.GetType())
+        if (context.started && currentState.GetStateType() != PlayerState.Climbing)
         {
             continousClimbCheck = true;
         }
@@ -485,7 +462,7 @@ public class PlayerStateManager : StateManager
         playerInfo.climbRight = pClimbRight;
         isJumping = false;
         continousClimbCheck = false;
-        SwitchState(playerClimbState);
+        SwitchState(new ClimbState());
         frontFoot.SetActive(false);
         backFoot.SetActive(true);
     }
@@ -509,7 +486,6 @@ public class PlayerStateManager : StateManager
     {
         bool climbLeft = playerInfo.climbLeft;
         bool climbRight = playerInfo.climbRight;
-        //SwitchState(idleState);
 
         if (climbLeft)
         {
@@ -549,9 +525,9 @@ public class PlayerStateManager : StateManager
     //WALL SLIDING AREA
     private bool IsWalled()
     {
-        if (isGrounded || currentState.GetType() == playerSwimState.GetType()
-            || currentState.GetType() == playerClimbState.GetType()
-            || currentState.GetType() == playerDashState.GetType())
+        if (isGrounded || currentState.GetStateType() == PlayerState.Swimming
+            || currentState.GetStateType() == PlayerState.Climbing
+            || currentState.GetStateType() == PlayerState.Dashing)
         {
             playerInfo.wallSlideRight = false;
             playerInfo.wallSlideLeft = false;
@@ -588,17 +564,17 @@ public class PlayerStateManager : StateManager
             if (wallCheckTimer <= 0)
             {
                 isWallSliding = true;
-                SwitchState(playerWallSlideState);
+                SwitchState(new WallSlidingState());
             }
         }
         else
         {
             //Debug.Log("Is wall left hit? " + isWallLeft + " Is wall right hit? " + isWallRight);
-            if (currentState.GetType() == playerWallSlideState.GetType())
+            if (currentState.GetStateType() == PlayerState.WallSliding)
             {
                 wallCheckTimer = wallCheckCooldown;
                 ResetCoyoteTimer();
-                SwitchState(idleState);
+                SwitchState(new IdleState());
             }
             isWallSliding = false;
         }
@@ -626,7 +602,7 @@ public class PlayerStateManager : StateManager
     {
         isDashing = true;
         playerInfo.SetCanDash(false);
-        SwitchState(playerDashState);
+        SwitchState(new DashState());
         yield return new WaitForSeconds(dashTime);
         isDashing = false;
         SwitchCheckIfMoving();
@@ -636,20 +612,20 @@ public class PlayerStateManager : StateManager
     {
         isDashing = true;
         playerInfo.SetCanDash(false);
-        SwitchState(playerWaterDashState);
+        SwitchState(new WaterDashState());
         yield return new WaitForSeconds(playerConfig.GetWaterDashTime());
         isDashing = false;
 
         //Should check if we're still in water
         if (bodyCollider.IsTouchingLayers(LayerMask.GetMask("Water")))
         {
-            SwitchState(playerSwimState);
+            SwitchState(new SwimmingState());
         }
         else
         {
             SwitchCheckIfMoving();
         }
-        
+
         playerInfo.SetCanDash(true);
     }
 
@@ -699,7 +675,7 @@ public class PlayerStateManager : StateManager
         if (context.started)
         {
             playerAudio.PlayOneShot(playerConfig.GetMeow());
-            if(currentState.GetType() == idleState.GetType())
+            if (currentState.GetStateType() == PlayerState.Idle)
             {
                 theAnimator.SetTrigger("MeowTrigger");
             }
@@ -708,7 +684,7 @@ public class PlayerStateManager : StateManager
 
     private void FlipSprite()
     {
-        if (currentState.GetType() == playerSwimState.GetType())
+        if (currentState.GetStateType() == PlayerState.Swimming)
         {
             return;
         }
@@ -763,7 +739,7 @@ public class PlayerStateManager : StateManager
     private void Die()
     {
         isAlive = false;
-        SwitchState(deathState);
+        SwitchState(new DeathState());
         StartCoroutine(PlayerDeath());
     }
 
@@ -779,11 +755,12 @@ public class PlayerStateManager : StateManager
         //Water check
         if (LayerMask.LayerToName(collision.gameObject.layer).Equals("Water") && !bodyCollider.IsTouchingLayers(LayerMask.GetMask("Water")))
         {
-            if(currentState.GetType() != playerWaterDashState.GetType()){
+            if (currentState.GetStateType() != PlayerState.WaterDashing)
+            {
                 theRigidbody.velocity = new Vector2(0, 3.5f);
                 theRigidbody.AddForce(new Vector2(theRigidbody.velocity.x, theRigidbody.velocity.y * waterExit), ForceMode2D.Force);
             }
-            SwitchCheckIfMoving();            
+            SwitchCheckIfMoving();
         }
     }
 }

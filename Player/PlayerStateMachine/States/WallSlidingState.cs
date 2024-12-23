@@ -35,4 +35,9 @@ public class WallSlidingState : BaseState
     public override void updateState(GameObject pGameObject, Rigidbody2D pRigidbody, Animator pAnimator, PlayerInfo pInfo){
         
     }
+
+    public override PlayerState GetStateType()
+    {
+        return PlayerState.WallSliding;
+    }
 }
