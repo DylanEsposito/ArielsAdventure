@@ -17,6 +17,11 @@ public class DeathState : BaseState
         
     }
 
+    public override PlayerState GetStateType()
+    {
+        return PlayerState.NotAlive;
+    }
+
     public override void updatePhysics(GameObject pGameObject, Rigidbody2D pRigidbody, PlayerInfo pPlayerInfo)
     {
         

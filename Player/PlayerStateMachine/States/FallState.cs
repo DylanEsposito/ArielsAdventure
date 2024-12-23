@@ -50,4 +50,9 @@ public class FallState : BaseState
         playerVelocity = new Vector2(pInfo.GetMoveInput().x * moveSpeed, pRigidbody.velocity.y);
         pRigidbody.velocity = playerVelocity;
     }
+
+    public override PlayerState GetStateType()
+    {
+        return PlayerState.Falling;
+    }
 }

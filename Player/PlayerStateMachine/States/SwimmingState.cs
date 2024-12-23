@@ -74,4 +74,9 @@ public class SwimmingState : BaseState
 
         previousDirection = movement;
     }
+
+    public override PlayerState GetStateType()
+    {
+        return PlayerState.Swimming;
+    }
 }

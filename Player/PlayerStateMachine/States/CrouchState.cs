@@ -29,4 +29,9 @@ public class CrouchState : BaseState
     {
         pAnimator.SetFloat("CrouchInput", pInfo.GetMoveInput().x);
     }
+
+    public override PlayerState GetStateType()
+    {
+        return PlayerState.Crouching;
+    }
 }

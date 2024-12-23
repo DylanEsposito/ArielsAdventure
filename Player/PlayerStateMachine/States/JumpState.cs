@@ -93,10 +93,9 @@ public class JumpState : MoveSubState
         }
     }
 
-    void InAir(Rigidbody2D pRigidbody, PlayerInfo pInfo)
+    public override PlayerState GetStateType()
     {
-
-       
+        return PlayerState.Jumping;
     }
 }
 

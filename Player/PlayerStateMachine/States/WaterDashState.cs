@@ -60,4 +60,9 @@ public class WaterDashState : BaseState
         Debug.Log("In dash state");
         //pRigidbody.velocity = new Vector2(modifiedDirection.x * dashSpeed, modifiedDirection.y * dashSpeed);
     }
+
+    public override PlayerState GetStateType()
+    {
+        return PlayerState.WaterDashing;
+    }
 }

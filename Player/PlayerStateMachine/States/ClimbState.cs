@@ -19,7 +19,8 @@ public class ClimbState : BaseState
     Vector2 wallExitKick = new Vector2(25f, 5f);
     float yVelocity = 0f;
     bool sentAlert = false;
-    public override void enterState(GameObject pGameObject, Rigidbody2D pRigidbody, Animator pAnimator, PlayerConfig pPlayerConfig, PlayerInfo pInfo) {
+    public override void enterState(GameObject pGameObject, Rigidbody2D pRigidbody, Animator pAnimator, PlayerConfig pPlayerConfig, PlayerInfo pInfo)
+    {
         Debug.Log("DYLAN Entered climb state");
         pInfo.SetMovementLock(false);
         sentAlert = false;
@@ -36,7 +37,8 @@ public class ClimbState : BaseState
         remainingClimbTime = pInfo.GetClimbTime();
     }
 
-    public override void updateState(GameObject pGameObject, Rigidbody2D pRigidbody, Animator pAnimator, PlayerInfo pInfo) {
+    public override void updateState(GameObject pGameObject, Rigidbody2D pRigidbody, Animator pAnimator, PlayerInfo pInfo)
+    {
         Debug.Log("In climb state");
         remainingClimbTime = pInfo.GetClimbTime();
         if (remainingClimbTime <= 0f)
@@ -49,10 +51,11 @@ public class ClimbState : BaseState
         {
             ClimbWall(pGameObject, pRigidbody, pAnimator, pInfo);
         }
-        
+
     }
 
-    public override void exitState(GameObject pGameObject, Rigidbody2D pRigidbody, Animator pAnimator, PlayerInfo pInfo) {
+    public override void exitState(GameObject pGameObject, Rigidbody2D pRigidbody, Animator pAnimator, PlayerInfo pInfo)
+    {
         Debug.Log("Exiting climb state");
         pRigidbody.gravityScale = gravityScaleAtStart;
         pAnimator.SetBool("isClimbing", false);
@@ -64,7 +67,8 @@ public class ClimbState : BaseState
         pInfo.climbRight = false;
     }
 
-    public override void updatePhysics(GameObject pGameObject, Rigidbody2D pRigidbody, PlayerInfo pInfo) {
+    public override void updatePhysics(GameObject pGameObject, Rigidbody2D pRigidbody, PlayerInfo pInfo)
+    {
         pRigidbody.gravityScale = 0f;
     }
 
@@ -79,13 +83,14 @@ public class ClimbState : BaseState
                 Debug.Log("End climb on right");
                 sentAlert = true;
                 pInfo.SetMovementLock(true);
-                pRigidbody.velocity = new Vector2(0,0);
+                pRigidbody.velocity = new Vector2(0, 0);
                 PlayerEvents.instance.EndClimb();
                 return;
             }
-        }else if (climbLeft)
+        }
+        else if (climbLeft)
         {
-            
+
             wallLeft = Physics2D.OverlapCircle((Vector2)pGameObject.transform.position + leftOffset, collisionRadius, wallMask);
             if (!wallLeft && !sentAlert)
             {
@@ -100,10 +105,11 @@ public class ClimbState : BaseState
 
         //To avoid speed manipulation, we'll just round to nearest whole number and skip regular normalization
         //Idk what it is who cares
-        if(pInfo.GetMoveInput().y > 0.15)
+        if (pInfo.GetMoveInput().y > 0.15)
         {
-            yVelocity = 1f; 
-        }else if(pInfo.GetMoveInput().y < -0.15)
+            yVelocity = 1f;
+        }
+        else if (pInfo.GetMoveInput().y < -0.15)
         {
             yVelocity = -1f;
         }
@@ -117,5 +123,10 @@ public class ClimbState : BaseState
         //This is a check to see if we should pause the animation and set it to either climbing or idle
         pAnimator.SetBool("isClimbing", true);
         pAnimator.SetFloat("ClimbInput", climbVelocity.y);
+    }
+
+    public override PlayerState GetStateType()
+    {
+        return PlayerState.Climbing;
     }
 }
