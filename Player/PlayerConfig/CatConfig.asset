@@ -12,8 +12,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3370cc32c9093cc47988b4b08d206c18, type: 3}
   m_Name: CatConfig
   m_EditorClassIdentifier: 
-  moveSpeed: 4.2
-  wallExitKick: {x: 0.3, y: 0.25}
+  moveSpeed: 4.5
+  wallExitKick: {x: 0.3, y: 0.3}
   deathKick: {x: 0, y: 5}
   collisionRadius: 0.2
   climbLayers:
@@ -27,7 +27,7 @@ MonoBehaviour:
   minCancelTimer: 0.35
   cancelTimer: 0.3
   gravityModifier: 1.2
-  inAirSpeed: 5
+  inAirSpeed: 5.5
   wallJumpBuffer: 0.4
   wallJumpGrav: 2.5
   climbExitTime: 0.2
