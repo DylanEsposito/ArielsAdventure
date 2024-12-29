@@ -24,6 +24,7 @@ public class PlayerConfig : ScriptableObject
     [SerializeField] float inAirSpeed = 5f;
     [SerializeField] private float wallJumpBuffer = 0.2f;
     [SerializeField] private float wallJumpGrav = 2f;
+    [SerializeField] private float wallJumpSpeed = 5f;
     private bool jumpContextCanceled;
 
     [Header("Climb Vars")]
@@ -37,6 +38,7 @@ public class PlayerConfig : ScriptableObject
     [Header("WallSliding Vars")]
     [SerializeField] float wallSlidingSpeed = 4f;
     [SerializeField] float wallCheckDistance = 0.45f;
+    [SerializeField] float wallSlideSeperation = 0.5f;
 
     [Header("Dash Vars")]
     [SerializeField] float dashTime = 0.2f; //to remove
@@ -196,5 +198,15 @@ public class PlayerConfig : ScriptableObject
     public LayerMask GetClimbMask()
     {
         return climbLayers;
+    }
+
+    public float GetWallSlideSeparation()
+    {
+        return wallSlideSeperation;
+    }
+
+    public float GetWallJumpSpeed()
+    {
+        return wallJumpSpeed;
     }
 }

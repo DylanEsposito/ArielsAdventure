@@ -5,7 +5,7 @@ using UnityEngine;
 //PyerInfo
 //Use: Store player related values that are continuously updated during playtime, this revolves around movement, what state the player is in
 //EX: coyoteTimeCounter will be updated very frame the player is off the ground but is reset to coyoteTimer 
-public class PlayerInfo
+public class PlayerInfo : MonoBehaviour
 {
     public Vector2 moveInput;
     public Vector2 lastMoveInput;
@@ -44,16 +44,31 @@ public class PlayerInfo
     private bool isSwimming = false;
     private bool waterHit = false;
 
-    private float moveSpeed = 4.5f;
+    
     private float climbExitTime = 0.1f;
     private bool movementLock = false;
 
-    private Transform wallCheck;
+    [SerializeField] private float moveSpeed = 4.5f;
+    [SerializeField] Transform wallCheck;
 
-    public PlayerInfo(Transform pWallCheck, float pMoveSpeed)
+    /*void LoadInConfig(PlayerConfig playerConfig)
+    {
+        collisionRadius = playerConfig.GetCollisionRadius();
+        wallCorrectionAmount = playerConfig.GetWallCorrection();
+        gravityModifier = playerConfig.GetGravityModifer();
+        inAirBuffer = playerConfig.GetAirTimer();
+        jumpingBuffer = playerConfig.GetJumpTimer();
+    }*/
+
+    /*public PlayerInfo(Transform pWallCheck, float pMoveSpeed)
     {
         wallCheck = pWallCheck;
         moveSpeed = pMoveSpeed;
+        speedAtStart = moveSpeed;
+    }*/
+
+    private void Start()
+    {
         speedAtStart = moveSpeed;
     }
 
@@ -104,11 +119,13 @@ public class PlayerInfo
 
     public void SetSpeed(float pSpeed)
     {
+        Debug.Log("Setting move speed to " + pSpeed);
         moveSpeed = pSpeed;
     }
 
     public void ResetSpeed()
     {
+        Debug.Log("Resessting speed to " + speedAtStart);
         moveSpeed = speedAtStart;
     }
 
