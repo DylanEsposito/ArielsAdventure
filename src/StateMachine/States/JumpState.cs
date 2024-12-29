@@ -2,100 +2,104 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class JumpState : MoveSubState
+namespace Ariel.PlayerStates
 {
-    private float mGravityModifier = 1f;
-    private float inAirGravityScale;
-    private float moveSpeed = 4f;
-    private float jumpTimer = 0.3f;
-    private float minCancelTimer = 0.3f;
-    bool timerHasBeentHit = false;
-    bool cancelRegistered = false;
-    Vector2 playerVelocity = new Vector2(0, 0);
-
-    public override void enterState(GameObject pGameObject, Rigidbody2D pRigidbody, Animator pAnimator, PlayerConfig pPlayerConfig, PlayerInfo pInfo)
+    public class JumpState : MoveSubState
     {
-        Debug.Log("Entering jump state");
-        jumpTimer = pPlayerConfig.GetJumpTimer();
-        moveSpeed = pPlayerConfig.GetInAirSpeed();
-        minCancelTimer = pPlayerConfig.GetMinCancelTimer();
-        pRigidbody.gravityScale = pPlayerConfig.GetGravityScale();
-        mGravityModifier = pPlayerConfig.GetGravityModifer();
+        private float mGravityModifier = 1f;
+        private float inAirGravityScale;
+        private float moveSpeed = 4f;
+        private float jumpTimer = 0.3f;
+        private float minCancelTimer = 0.3f;
+        bool timerHasBeentHit = false;
+        bool cancelRegistered = false;
+        Vector2 playerVelocity = new Vector2(0, 0);
 
-        cancelRegistered = false;
-        timerHasBeentHit = false;
-        
-        //AudioManagement.instance.OnPlayerJump();
-
-        pAnimator.SetBool("IsJumping", true);
-        pAnimator.SetFloat("JumpInput", 0);
-        pRigidbody.velocity = new Vector2(pRigidbody.velocity.x, pPlayerConfig.GetJumpSpeed());
-    }
-
-    public override void updateState(GameObject pGameObject, Rigidbody2D pRigidbody, Animator pAnimator, PlayerInfo pInfo)
-    {
-        if (cancelRegistered)
+        public override void enterState(GameObject pGameObject, Rigidbody2D pRigidbody, Animator pAnimator, PlayerConfig pPlayerConfig, PlayerInfo pInfo)
         {
-            pAnimator.SetFloat("JumpInput", 1);
+            Debug.Log("Entering jump state");
+            jumpTimer = pPlayerConfig.GetJumpTimer();
+            moveSpeed = pPlayerConfig.GetInAirSpeed();
+            minCancelTimer = pPlayerConfig.GetMinCancelTimer();
+            pRigidbody.gravityScale = pPlayerConfig.GetGravityScale();
+            mGravityModifier = pPlayerConfig.GetGravityModifer();
+
+            cancelRegistered = false;
+            timerHasBeentHit = false;
+
+            //AudioManagement.instance.OnPlayerJump();
+
+            pAnimator.SetBool("IsJumping", true);
+            pAnimator.SetFloat("JumpInput", 0);
+            pRigidbody.velocity = new Vector2(pRigidbody.velocity.x, pPlayerConfig.GetJumpSpeed());
         }
-        UpdateTimer();
-    }
 
-    public override void exitState(GameObject pGameObject, Rigidbody2D pRigidbody, Animator pAnimator, PlayerInfo pInfo)
-    {
-        pAnimator.SetBool("IsJumping", false);
-        pAnimator.SetFloat("JumpInput", 0);
-        pInfo.SetContextCancel(false);
-        cancelRegistered = false;
-        timerHasBeentHit = false;
-    }
-
-    public override void updatePhysics(GameObject pGameObject, Rigidbody2D pRigidbody, PlayerInfo pInfo)
-    {
-        //Here cancel has not been hit, meaning we reached the apex of the jump and are beginning to fall
-        if (pRigidbody.velocity.y < 0 && !pInfo.isContextCanceled())
+        public override void updateState(GameObject pGameObject, Rigidbody2D pRigidbody, Animator pAnimator, PlayerInfo pInfo)
         {
-            pRigidbody.velocity += Vector2.up * Physics2D.gravity.y * (mGravityModifier) * Time.fixedDeltaTime;
-            pInfo.SetContextCancel(true);
-            cancelRegistered = true;
+            if (cancelRegistered)
+            {
+                pAnimator.SetFloat("JumpInput", 1);
+            }
+            UpdateTimer();
         }
 
-        //We have begun to fall, continue iterating on it
-        if (cancelRegistered) 
+        public override void exitState(GameObject pGameObject, Rigidbody2D pRigidbody, Animator pAnimator, PlayerInfo pInfo)
         {
-            pRigidbody.velocity += Vector2.up * Physics2D.gravity.y * (mGravityModifier) * Time.fixedDeltaTime;
+            pAnimator.SetBool("IsJumping", false);
+            pAnimator.SetFloat("JumpInput", 0);
+            pInfo.SetContextCancel(false);
+            cancelRegistered = false;
+            timerHasBeentHit = false;
         }
 
-        //Cancel has been hit after minimum time, halt the jump and start falling
-        if (jumpTimer > 0 && jumpTimer < minCancelTimer && pInfo.isContextCanceled() && !cancelRegistered)
+        public override void updatePhysics(GameObject pGameObject, Rigidbody2D pRigidbody, PlayerInfo pInfo)
         {
-            
-            pRigidbody.velocity = new Vector2(pRigidbody.velocity.x, 0);
-            cancelRegistered = true;
+            //Here cancel has not been hit, meaning we reached the apex of the jump and are beginning to fall
+            if (pRigidbody.velocity.y < 0 && !pInfo.isContextCanceled())
+            {
+                pRigidbody.velocity += Vector2.up * Physics2D.gravity.y * (mGravityModifier) * Time.fixedDeltaTime;
+                pInfo.SetContextCancel(true);
+                cancelRegistered = true;
+            }
+
+            //We have begun to fall, continue iterating on it
+            if (cancelRegistered)
+            {
+                pRigidbody.velocity += Vector2.up * Physics2D.gravity.y * (mGravityModifier) * Time.fixedDeltaTime;
+            }
+
+            //Cancel has been hit after minimum time, halt the jump and start falling
+            if (jumpTimer > 0 && jumpTimer < minCancelTimer && pInfo.isContextCanceled() && !cancelRegistered)
+            {
+
+                pRigidbody.velocity = new Vector2(pRigidbody.velocity.x, 0);
+                cancelRegistered = true;
+            }
+
+            //Limit fall speed to a certain amount
+            if (pRigidbody.velocity.y < -10f)
+            {
+                pRigidbody.velocity = new Vector2(pRigidbody.velocity.x, -10f);
+            }
+
+            //Finally we need to update the x direction of the player according to the move speed
+            playerVelocity = new Vector2(pInfo.GetMoveInput().x * moveSpeed, pRigidbody.velocity.y);
+            pRigidbody.velocity = playerVelocity;
         }
 
-        //Limit fall speed to a certain amount
-        if (pRigidbody.velocity.y < -10f) {
-            pRigidbody.velocity = new Vector2(pRigidbody.velocity.x, -10f);
+        void UpdateTimer()
+        {
+            //TODO - Should remove this jumptimer check
+            if (jumpTimer > 0)
+            {
+                jumpTimer -= Time.deltaTime;
+            }
         }
 
-        //Finally we need to update the x direction of the player according to the move speed
-        playerVelocity = new Vector2(pInfo.GetMoveInput().x * moveSpeed, pRigidbody.velocity.y);
-        pRigidbody.velocity = playerVelocity;
+        public override PlayerStateType GetStateType()
+        {
+            return PlayerStateType.Jumping;
+        }
     }
 
-    void UpdateTimer()
-    {
-        //TODO - Should remove this jumptimer check
-        if (jumpTimer > 0)
-        {
-            jumpTimer -= Time.deltaTime;
-        }
-    }
-
-    public override PlayerState GetStateType()
-    {
-        return PlayerState.Jumping;
-    }
 }
-
